@@ -1,2 +1,2 @@
 # AS_papers
-Projet analyse spatiale IGAST - ISPRS papers
+Projet d'analyse spatiale IGAST - ISPRS papers
