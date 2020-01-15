@@ -1,0 +1,117 @@
+CREATE TABLE "isprs_brut"(
+  "author_name" character varying(150),
+  "author_lastname" character varying(150),
+  "author_firstname" character varying(150),
+  "author_title" character varying(150),
+  "author_email" character varying(150),
+  "author_orcid" character varying(150),
+  "author_organisation" character varying(300),
+  "author_personid" character varying(150),
+  "author_is_submitter" character varying(150),
+  "author_is_presenting" character varying(150),
+  "author_registration_status" character varying(150),
+  "nope" character varying(5),
+  "paperid" character varying(150),
+  "position_in_list_of_authors" character varying(5),
+  "contributor_type" character varying(150),
+  "nope2" character varying(150),
+  "paper_title" character varying(200),
+  "nope3" character varying(150),
+  "paper_contribution_type" character varying(150),
+  "paper_authors" character varying(300),
+  "paper_organisations" character varying(300),
+  "presenting_author_cv" character varying(150),
+  "nope4" character varying(150),
+  "session_ID" character varying(150),
+  "session_short" character varying(150),
+  "number_in_session" character varying(150),
+  "session_title" character varying(150),
+  "starttime" character varying(150),
+  "endtime" character varying(5),
+  "session_room" character varying(150),
+  "session_formatted" character varying(150),
+  "presentation_starttime" character varying(150),
+  "presentation_endtime" character varying(150),
+  "nope5" character varying(150),
+  "acceptance" character varying(300),
+  "acceptance_status" character varying(150),
+  "withdrawn" character varying(150),
+  "nope6" character varying(150),
+  "sa_title_selected" character varying(150),
+  "sa_formal_salutation" character varying(150),
+  "sa_title_short" character varying(150),
+  "sa_academic_job_title" character varying(150),
+  "person_name" character varying(150),
+  "person_firstname" character varying(150),
+  "person_organisation" character varying(300),
+  "person_organisation2" character varying(150),
+  "person_address1" character varying(300),
+  "person_address2" character varying(300),
+  "person_address3" character varying(300),
+  "person_zip" character varying(150),
+  "person_city" character varying(150),
+  "person_state" character varying(150),
+  "person_countrycode" character varying(150),
+  "nope7" character varying(150),
+  "participant_registration_date" character varying(150),
+  "participant_group" character varying(150),
+  "participant_total" character varying(150),
+  "participant_amount_paid" character varying(150),
+  "participant_amount_open" character varying(150),
+  "participant_canceled" character varying(300),
+  "nope8" character varying(150),
+  "original_filename_a" character varying(300),
+  "download_link_a" character varying(200),
+  "last_upload_a" character varying(150),
+  "original_filename_final_a" character varying(150),
+  "download_final_link_a" character varying(150),
+  "last_upload_final_a" character varying(150),
+  "original_filename_final_b" character varying(150),
+  "download_final_link_b" character varying(150),
+  "last_upload_final_b" character varying(150),
+  "nope9" character varying(150),
+  "nope10" character varying(150),
+  "person_externalremark" character varying(150),
+  "person_internalremark" character varying(150),
+  "person_nationality" character varying(150),
+  "person_dob" character varying(150),
+  "person_pob" character varying(150),
+  "person_memberid" character varying(150),
+  "nope11" character varying(150),
+  "personid" character varying(150),
+  "e1_you_work_in_multiple_choices_are_possibl" character varying(150),
+  "e2_you_are_working_for" character varying(150),
+  "e3_the_size_of_your_company_organization_ag" character varying(150),
+  "e4_you_are_a_" character varying(150),
+  "e5_your_major_scientific_technical_interest" character varying(150),
+  "e6_your_main_business_or_application_intere" character varying(150),
+  "e7_your_primary_technology_interests_are_in" character varying(150),
+  "e8_email_diffusion" character varying(150),
+  "e9_Personal_information" character varying(150)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE "isprs_brut"
+  OWNER TO postgres;
+
+COPY public."isprs_brut" 
+FROM 'D:\ISPRS2020_auteurs.csv'
+WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
+
+ALTER TABLE "isprs_brut" ADD COLUMN id SERIAL PRIMARY KEY;
+
+CREATE TABLE author AS SELECT DISTINCT ON (author_email) author_email,id,author_orcid,author_firstname,author_lastname,person_dob,sa_title_short,person_countrycode,person_city FROM "isprs_brut";
+ALTER TABLE author ADD PRIMARY KEY (author_email);
+
+CREATE TABLE country AS SELECT DISTINCT ON (author_email) author_email,person_countrycode FROM author;
+ALTER TABLE country ADD PRIMARY KEY (author_email);
+
+CREATE TABLE organisation AS SELECT DISTINCT ON (author_email) author_email,person_organisation FROM "isprs_brut";
+ALTER TABLE organisation ADD PRIMARY KEY (author_email);
+
+CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid,author_email as submitter_email,paper_authors,paper_organisations,paper_title,download_link_a,acceptance,acceptance_status FROM "isprs_brut";
+ALTER TABLE article ADD PRIMARY KEY (paperid);
+
+CREATE TABLE theme AS SELECT DISTINCT ON (paperid) paperid,paper_contribution_type FROM "isprs_brut";
+ALTER TABLE theme ADD PRIMARY KEY (paperid);
