@@ -95,9 +95,10 @@ WITH (
 ALTER TABLE "isprs_brut"
   OWNER TO postgres;
 
-COPY public."isprs_brut" 
-FROM 'D:\ISPRS2020_auteurs.csv'
-WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
+GRANT SELECT ON isprs_brut TO PUBLIC;
+
+--COPY public."isprs_brut" FROM 'D:\ISPRS2020_auteurs.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
+COPY public."isprs_brut" FROM 'C:\Users\BERAUD\Desktop\ENSG\IT3\Prj-ISPRS\AS_papers\ISPRS2020_auteurs.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
 
 ALTER TABLE "isprs_brut" ADD COLUMN id SERIAL PRIMARY KEY;
 
@@ -115,3 +116,5 @@ ALTER TABLE article ADD PRIMARY KEY (paperid);
 
 CREATE TABLE theme AS SELECT DISTINCT ON (paperid) paperid,paper_contribution_type FROM "isprs_brut";
 ALTER TABLE theme ADD PRIMARY KEY (paperid);
+
+CREATE EXTENSION postgis;

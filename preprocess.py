@@ -13,7 +13,8 @@ def load_commands():
     Load SQL command from text files (prevent tens of ugly lines just for that)
     return: String with the SQL command line
     """
-    file_sqlcommand_ini = open("C:/Users/Formation/Pictures/AS_papers/sql_importTable.txt")
+    # file_sqlcommand_ini = open("C:/Users/Formation/Pictures/AS_papers/sql_importTable.txt")
+    file_sqlcommand_ini = open("C:/Users/BERAUD/Desktop/ENSG/IT3/Prj-ISPRS/AS_papers/sql_importTable.txt")
     list_sqlcommand_ini = file_sqlcommand_ini.readlines()   # get all lines into a list
     sqlcommand_ini = ''     # to convert list to string
     for x in list_sqlcommand_ini:   # loop over all lines
@@ -26,8 +27,9 @@ def preprocessing(sqlcommand_ini):
     param sqlcommand_ini: String, first SQL command line to execute, initialize and pre-fill the tables
     """
     try:
-        conn = psycopg2.connect(dbname="test", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
-        line_conn = getframeinfo(currentframe()).lineno -1  # get line number minus 1 (connection line)
+        line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
+        conn = psycopg2.connect(dbname="isprs_data", user="postgres", password="postgres",host="localhost",port="5432") # connect to the database
+        # conn = psycopg2.connect(dbname="test", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
         try:
             curs = conn.cursor()    # create cursor
             curs.execute(sqlcommand_ini)    # execute SQL command
@@ -55,13 +57,14 @@ def preprocessing(sqlcommand_ini):
 #                conn.close()
 #                print("PostgreSQL connection has been closed")
 ############
+        finally:
+        #closing database connection.
+            if(conn):
+                conn.close()
+                print("Preprocessing finished, connexion closed")
     except:
         print("Unable to connect to the database | see line "+str(line_conn))
-    finally:
-        #closing database connection.
-        if(conn):
-            conn.close()
-            print("Preprocessing finished, connexion closed")
+    
 
 if __name__ == '__main__':
     sqlcommand_ini = load_commands()    # Load SQL command files
