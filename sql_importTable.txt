@@ -97,8 +97,7 @@ ALTER TABLE "isprs_brut"
 
 GRANT SELECT ON isprs_brut TO PUBLIC;
 
---COPY public."isprs_brut" FROM 'D:\ISPRS2020_auteurs.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
-COPY public."isprs_brut" FROM 'C:\Users\BERAUD\Desktop\ENSG\IT3\Prj-ISPRS\AS_papers\ISPRS2020_auteurs.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
+COPY public."isprs_brut" FROM 'D:\ISPRS2020_auteurs.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
 
 ALTER TABLE "isprs_brut" ADD COLUMN id SERIAL PRIMARY KEY;
 
