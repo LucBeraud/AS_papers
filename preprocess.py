@@ -80,7 +80,6 @@ def preproc_geocoding():
                 curs.execute("SELECT paper_organisations FROM article")    # execute SQL command
                 rows = curs.fetchall()
                 for i in range(len(rows)):
-                    adress = ''
                     if ";" in rows[i][0]:
                         line = rows[i][0].split(";")
                         adress = line[0][3:]
@@ -90,9 +89,8 @@ def preproc_geocoding():
 #                conn.commit()   # commit, validate the changes in the database
             except psycopg2.Error as e:
                 print(e, ' | error probably line '+str(line_execCmdIni))
-            line_execIni = getframeinfo(currentframe()).lineno -1   # get line number of the command block execution
         except psycopg2.Error as e:
-            print(e, ' | error probably line '+str(line_execIni))
+            print(e, ' | error probably at or after line '+str(line_execCmdIni-3))
         finally:
         #closing database connection.
             if(conn):
