@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS article,author,country,isprs_brut,organisation,theme;
+DROP EXTENSION IF EXISTS postgis;
+
 CREATE TABLE "isprs_brut"(
   "author_name" character varying(150),
   "author_lastname" character varying(150),

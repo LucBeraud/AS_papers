@@ -23,30 +23,27 @@ def load_commands():
 def preproc_createtables(sqlcommand_ini):
     """
     Do the preprocessing of the table. Main function.
+    Be carefull : drop tables article,author,country,isprs_brut,organisation,theme and postgis extension if exists
     param sqlcommand_ini: String, first SQL command line to execute, initialize and pre-fill the tables
     """
     try:
         line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
         conn = psycopg2.connect(dbname="isprs", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+        curs = conn.cursor()    # create cursor
         try:
-            curs = conn.cursor()    # create cursor
-            try:
-                line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-                curs.execute(sqlcommand_ini)    # execute SQL command
-                print('Tables initialized')
-                conn.commit()   # commit, validate the changes in the database
-            except psycopg2.Error as e:
-                print(e, ' | error probably line '+str(line_execCmdIni))
-            line_execIni = getframeinfo(currentframe()).lineno -1   # get line number of the command block execution
+            line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
+            curs.execute(sqlcommand_ini)    # execute SQL command
+            print('Tables initialized')
+            conn.commit()   # commit, validate the changes in the database
         except psycopg2.Error as e:
-            print(e, ' | error probably line '+str(line_execIni))
+            print(e, ' | error probably line '+str(line_execCmdIni))
         finally:
         #closing database connection.
             if(conn):
                 conn.close()
-                print("Preprocessing finished, connexion closed")
+                print("Preprocessing 1 finished, connexion closed \n")
     except:
-        print("Unable to connect to the database | see line "+str(line_conn)) 
+        print("Unable to connect to the database | see line "+str(line_conn))
         
         
 ### Example
@@ -69,8 +66,43 @@ def preproc_createtables(sqlcommand_ini):
 #                print("PostgreSQL connection has been closed")
 ############
 
+def preproc_geocoding():
+    """
+    Part of the preprocessing : do the geocoding
+    """
+    try:
+        line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
+        conn = psycopg2.connect(dbname="isprs", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+        try:
+            curs = conn.cursor()    # create cursor
+            try:
+                line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
+                curs.execute("SELECT paper_organisations FROM article")    # execute SQL command
+                rows = curs.fetchall()
+                for i in range(len(rows)):
+                    adress = ''
+                    if ";" in rows[i][0]:
+                        line = rows[i][0].split(";")
+                        adress = line[0][3:]
+                    else:
+                        adress = rows[i][0]
+                    print(adress) ########### GEOCODE THIS in this loop ? store result in a list and create new column from it ?
+#                conn.commit()   # commit, validate the changes in the database
+            except psycopg2.Error as e:
+                print(e, ' | error probably line '+str(line_execCmdIni))
+            line_execIni = getframeinfo(currentframe()).lineno -1   # get line number of the command block execution
+        except psycopg2.Error as e:
+            print(e, ' | error probably line '+str(line_execIni))
+        finally:
+        #closing database connection.
+            if(conn):
+                conn.close()
+                print("Preprocessing 2 finished, connexion closed \n")
+    except:
+        print("Unable to connect to the database | see line "+str(line_conn))
   
 
 if __name__ == '__main__':
     sqlcommand_ini = load_commands()    # Load SQL command files
     preproc_createtables(sqlcommand_ini)   # Execute preprocessing function, main function
+    preproc_geocoding()
