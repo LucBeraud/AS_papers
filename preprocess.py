@@ -7,19 +7,22 @@ Created on Wed Jan 15 10:44:07 2020
 
 import psycopg2
 from inspect import currentframe, getframeinfo
+import geocoder
 
+########## Function that returns the query commands from a text file which will be executed in the next function
 def load_commands():
     """
     Load SQL command from text files (prevent tens of ugly lines just for that)
     return: String with the SQL command line
     """
-    file_sqlcommand_ini = open("C:/Users/Formation/Pictures/AS_papers/sql_importTable.txt")
+    file_sqlcommand_ini = open("C:/ms4w/Apache/htdocs/AS_papers/sql_importTable.txt")
     list_sqlcommand_ini = file_sqlcommand_ini.readlines()   # get all lines into a list
     sqlcommand_ini = ''     # to convert list to string
     for x in list_sqlcommand_ini:   # loop over all lines
         sqlcommand_ini+=x   # concatenate the next command part
     return sqlcommand_ini
 
+########## Function that creates tables using the sqlcommand_ini
 def preproc_createtables(sqlcommand_ini):
     """
     Do the preprocessing of the table. Main function.
@@ -28,12 +31,13 @@ def preproc_createtables(sqlcommand_ini):
     """
     try:
         line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-        conn = psycopg2.connect(dbname="isprs", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+        conn = psycopg2.connect(dbname="ISPRS", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
         curs = conn.cursor()    # create cursor
         try:
             line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
+            #print(line_conn)
             curs.execute(sqlcommand_ini)    # execute SQL command
-            print('Tables initialized')
+            #print('Tables initialized')
             conn.commit()   # commit, validate the changes in the database
         except psycopg2.Error as e:
             print(e, ' | error probably line '+str(line_execCmdIni))
@@ -44,49 +48,32 @@ def preproc_createtables(sqlcommand_ini):
                 print("Preprocessing 1 finished, connexion closed \n")
     except:
         print("Unable to connect to the database | see line "+str(line_conn))
-        
-        
-### Example
-#        curs = conn.cursor()
-#        try:
-#            curs.execute(sqlcommand_ini)
-#            try:
-#                rows = curs.fetchall()
-#                print(rows)
-#            except psycopg2.Error as e:
-#                print(e,' - internal loop')
-#        except psycopg2.Error as e:
-#            print(e,' - external loop')
-#            
-#        finally:
-#        #closing database connection.
-#            if(conn):
-#                curs.close()
-#                conn.close()
-#                print("PostgreSQL connection has been closed")
-############
+               
 
+########## Function that returns addresses list of each article's organisations
 def preproc_geocoding():
     """
     Part of the preprocessing : do the geocoding
     """
     try:
         line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-        conn = psycopg2.connect(dbname="isprs", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+        conn = psycopg2.connect(dbname="ISPRS", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
         try:
-            curs = conn.cursor()    # create cursor
+            curs = conn.cursor() # create cursor
             try:
                 line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
                 curs.execute("SELECT paper_organisations FROM article")    # execute SQL command
-                rows = curs.fetchall()
+                rows = curs.fetchall() # fetches all rows of the query result set and returns a list of tuples
+                #print(rows)
+                list_adress = [] 
+                #Filling the address list 
                 for i in range(len(rows)):
                     if ";" in rows[i][0]:
                         line = rows[i][0].split(";")
                         adress = line[0][3:]
                     else:
                         adress = rows[i][0]
-                    print(adress) ########### GEOCODE THIS in this loop ? store result in a list and create new column from it ?
-#                conn.commit()   # commit, validate the changes in the database
+                    list_adress.append(adress)
             except psycopg2.Error as e:
                 print(e, ' | error probably line '+str(line_execCmdIni))
         except psycopg2.Error as e:
@@ -98,9 +85,74 @@ def preproc_geocoding():
                 print("Preprocessing 2 finished, connexion closed \n")
     except:
         print("Unable to connect to the database | see line "+str(line_conn))
-  
+    return list_adress
+
+########## Function that returns addresses coordinates  of each article's organisations using the geocoder module
+def geocoding(list_adress):
+    coordinates=[] #List that will contain the latitude and the longitude of each address 
+    verbose=False
+    for adress in list_adress:
+        try: 
+            try:
+                location = geocoder.osm(adress)
+                rep=location.json
+                coordinates.append([rep['lat'], rep['lng']]) 
+                verbose=True
+            except:
+                try:
+                    #we get the list elements after the first comma
+                    adress_bis = adress.split(',')[1:]
+                    adress2 = ''
+                    #we concatenate the adress elements                        
+                    for ad in adress_bis:
+                        adress2+=ad
+                    location = geocoder.osm(adress2)
+                    rep=location.json
+                    coordinates.append([rep['lat'], rep['lng']]) 
+                    verbose=True
+                except :
+                    #we get the last list element 
+                    adress = adress.split(',')[-1]
+                    location = geocoder.osm(adress)
+                    rep=location.json
+                    coordinates.append([rep['lat'], rep['lng']]) 
+                    verbose=True
+        except AttributeError as e :
+            print("Nonvalid address, ",e)
+            verbose=False
+            
+    if(verbose):
+            print("Preprocessing 3 finished\n")    
+    return coordinates 
+
+########## Function that fills the geometry column using the coordinates list 
+def geometry_column(coordinates,list_adress):
+    for i in range(len(coordinates)):
+        x=coordinates[i][1]
+        y=coordinates[i][0]
+        try:
+            line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
+            conn = psycopg2.connect(dbname="ISPRS", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+            curs = conn.cursor()    # create cursor
+            try:
+                line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
+                postgres_insert_query = "UPDATE article SET geom= ST_SetSRID(ST_MakePoint(%s,%s), 4326) WHERE paper_organisations=%s;"
+                record_to_insert = (x,y, list_adress[i])
+                curs.execute(postgres_insert_query, record_to_insert)
+                conn.commit()   # commit, validate the changes in the database
+            except psycopg2.Error as e:
+                print(e, ' | error probably line '+str(line_execCmdIni))
+        except:
+            print("Unable to connect to the database | see line "+str(line_conn))
+    #closing database connection.
+    if(conn):
+        conn.close()
+        print("Preprocessing 4 finished, connexion closed \n")
+    
 
 if __name__ == '__main__':
-    sqlcommand_ini = load_commands()    # Load SQL command files
+    sqlcommand_ini = load_commands()    # Load SQL command filesprint(sqlcommand_ini)
     preproc_createtables(sqlcommand_ini)   # Execute preprocessing function, main function
-    preproc_geocoding()
+    list_adress=preproc_geocoding()
+    coordinates=geocoding(list_adress)
+    geometry_column(coordinates,list_adress)
