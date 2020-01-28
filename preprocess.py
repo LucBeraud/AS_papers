@@ -190,4 +190,4 @@ if __name__ == '__main__':
     coordinates=geocoding(list_adress) # # Process the geocoding
     geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
     
-    print("Database ready for online upload")
+    print("\n Database ready for online upload !!!")
