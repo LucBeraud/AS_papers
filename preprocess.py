@@ -2,7 +2,13 @@
 """
 Created on Wed Jan 15 10:44:07 2020
 
-@author: Formation
+@author: KHOJ Hanaa, SINEY Hadrien, SARGISSIAN Andre, BERAUD Luc
+
+IGAST 2019-2020, ENSG-UPEM - projet Analyse Spatiale, responsible IGN Paul CHAPRON
+For Clement MALLET - ISPRS 24th Congress (Nice, FR)
+
+This script require the definition of a PostgreSQL database. Fill the connection parameters at the bottom of the script before the function calls.
+This script prepare the database from the CSV file of the ISPRS application form to the spatial database with the information of the articles, authors and location of the main author's organization.
 """
 
 import psycopg2
@@ -31,7 +37,7 @@ def preproc_createtables(sqlcommand_ini):
     """
     try:
         line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-        conn = psycopg2.connect(dbname="ISPRS", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+        conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
         curs = conn.cursor()    # create cursor
         try:
             line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
@@ -53,11 +59,13 @@ def preproc_createtables(sqlcommand_ini):
 ########## Function that returns addresses list of each article's organisations
 def preproc_geocoding():
     """
-    Part of the preprocessing : do the geocoding
+    Part of the geocoding: get the adress of the main author's organization and paper identifiers to be geocoded.
+    return list_adress: list of the adress (string) to geocode
+    return paperid: list of the paper identifiers (string)
     """
     try:
         line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-        conn = psycopg2.connect(dbname="test_isprs", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+        conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
         try:
             curs = conn.cursor() # create cursor
             try:
@@ -93,8 +101,12 @@ def preproc_geocoding():
         print("Unable to connect to the database | see line "+str(line_conn))
     return list_adress,paperid
 
-########## Function that returns addresses coordinates  of each article's organisations using the geocoder module
 def geocoding(list_adress):
+    """
+    Part of the geocoding: do the location requests of the adresses and return longitudes and latitudes
+    param list_adress: list of adresses to geocode (string)
+    return coordinates: geolocated coordinates of the adresses (longitude, latitude)
+    """
     coordinates=[] #List that will contain the latitude and the longitude of each address 
     verbose=False
     for adress in list_adress:
@@ -131,14 +143,19 @@ def geocoding(list_adress):
             print("Preprocessing 3 finished\n")    
     return coordinates 
 
-########## Function that fills the geometry column using the coordinates list 
 def geometry_column(coordinates,list_adress,paperid):
+    """
+    Function that fills the geometry column using the coordinates list
+    param coordinates: geolocated coordinates of the adresses (longitude, latitude)
+    param list_adress: list of the adress (string) to geocode
+    param paperid: list of the paper identifiers (string)
+    """
     for i in range(len(coordinates)):
         x=coordinates[i][1]
         y=coordinates[i][0]
         try:
             line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-            conn = psycopg2.connect(dbname="ISPRS", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+            conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
             curs = conn.cursor()    # create cursor
             try:
                 line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
@@ -157,8 +174,20 @@ def geometry_column(coordinates,list_adress,paperid):
     
 
 if __name__ == '__main__':
+    
+    """
+    Define database caracteristics
+    """
+    global datbname;global user_db; global pswd; global dbhost; global dbport
+    datbname = "ISPRS";user_db = "postgres";pswd = "postgres";dbhost = "localhost";dbport = "5433"
+    
+    """
+    Processing
+    """
     sqlcommand_ini = load_commands()    # Load SQL command filesprint(sqlcommand_ini)
-    preproc_createtables(sqlcommand_ini)   # Execute preprocessing function, main function
-    list_adress,paperid=preproc_geocoding()
-    coordinates=geocoding(list_adress)
-    geometry_column(coordinates,list_adress,paperid)
+    preproc_createtables(sqlcommand_ini)   # Execute the creation of the tables according to the database model
+    list_adress,paperid=preproc_geocoding() # Get the adress of the main author's organization in the database
+    coordinates=geocoding(list_adress) # # Process the geocoding
+    geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
+    
+    print("Database ready for online upload")
