@@ -62,7 +62,7 @@ def preproc_geocoding():
             curs = conn.cursor() # create cursor
             try:
                 line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-                curs.execute("SELECT paper_organisations FROM article")    # execute SQL command
+                curs.execute("SELECT paper_organisations FROM article")    # execute SQL command, get adresses of the first author
                 rows = curs.fetchall() # fetches all rows of the query result set and returns a list of tuples
                 #print(rows)
                 list_adress = [] 
@@ -74,6 +74,12 @@ def preproc_geocoding():
                     else:
                         adress = rows[i][0]
                     list_adress.append(adress)
+                
+                curs.execute("SELECT paperid FROM article")    # get paper id to be used when defining the geometry after the geocoding
+                rows = curs.fetchall() # fetches all rows of the query result set and returns a list of tuples
+                paperid = []
+                for papid in rows:
+                    paperid.append(papid[0])
             except psycopg2.Error as e:
                 print(e, ' | error probably line '+str(line_execCmdIni))
         except psycopg2.Error as e:
@@ -85,7 +91,7 @@ def preproc_geocoding():
                 print("Preprocessing 2 finished, connexion closed \n")
     except:
         print("Unable to connect to the database | see line "+str(line_conn))
-    return list_adress
+    return list_adress,paperid
 
 ########## Function that returns addresses coordinates  of each article's organisations using the geocoder module
 def geocoding(list_adress):
@@ -126,7 +132,7 @@ def geocoding(list_adress):
     return coordinates 
 
 ########## Function that fills the geometry column using the coordinates list 
-def geometry_column(coordinates,list_adress):
+def geometry_column(coordinates,list_adress,paperid):
     for i in range(len(coordinates)):
         x=coordinates[i][1]
         y=coordinates[i][0]
@@ -136,8 +142,8 @@ def geometry_column(coordinates,list_adress):
             curs = conn.cursor()    # create cursor
             try:
                 line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-                postgres_insert_query = "UPDATE article SET geom= ST_SetSRID(ST_MakePoint(%s,%s), 4326) WHERE paper_organisations=%s;"
-                record_to_insert = (x,y, list_adress[i])
+                postgres_insert_query = "UPDATE article SET geom= ST_SetSRID(ST_MakePoint(%s,%s), 4326) WHERE paperid=%s;"
+                record_to_insert = (x,y, paperid[i])
                 curs.execute(postgres_insert_query, record_to_insert)
                 conn.commit()   # commit, validate the changes in the database
             except psycopg2.Error as e:
@@ -153,6 +159,6 @@ def geometry_column(coordinates,list_adress):
 if __name__ == '__main__':
     sqlcommand_ini = load_commands()    # Load SQL command filesprint(sqlcommand_ini)
     preproc_createtables(sqlcommand_ini)   # Execute preprocessing function, main function
-    list_adress=preproc_geocoding()
+    list_adress,paperid=preproc_geocoding()
     coordinates=geocoding(list_adress)
-    geometry_column(coordinates,list_adress)
+    geometry_column(coordinates,list_adress,paperid)
