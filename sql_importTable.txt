@@ -65,7 +65,7 @@ CREATE TABLE "isprs_brut"(
   "participant_canceled" character varying(300),
   "nope8" character varying(150),
   "original_filename_a" character varying(300),
-  "download_link_a" character varying(200),
+  "download_link_a" character varying(300),
   "last_upload_a" character varying(150),
   "original_filename_final_a" character varying(150),
   "download_final_link_a" character varying(150),

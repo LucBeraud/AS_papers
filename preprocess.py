@@ -57,7 +57,7 @@ def preproc_geocoding():
     """
     try:
         line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-        conn = psycopg2.connect(dbname="ISPRS", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
+        conn = psycopg2.connect(dbname="test_isprs", user="postgres", password="postgres",host="localhost",port="5433") # connect to the database
         try:
             curs = conn.cursor() # create cursor
             try:
