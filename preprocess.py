@@ -179,15 +179,15 @@ if __name__ == '__main__':
     Define database caracteristics
     """
     global datbname;global user_db; global pswd; global dbhost; global dbport
-    datbname = "ISPRS";user_db = "postgres";pswd = "postgres";dbhost = "localhost";dbport = "5433"
+    datbname = "ISPRS";user_db = "postgres";pswd = "postgres";dbhost = "localhost";dbport = "5432"
     
     """
     Processing
     """
     sqlcommand_ini = load_commands()    # Load SQL command filesprint(sqlcommand_ini)
     preproc_createtables(sqlcommand_ini)   # Execute the creation of the tables according to the database model
-    list_adress,paperid=preproc_geocoding() # Get the adress of the main author's organization in the database
-    coordinates=geocoding(list_adress) # # Process the geocoding
-    geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
+#    list_adress,paperid=preproc_geocoding() # Get the adress of the main author's organization in the database
+#    coordinates=geocoding(list_adress) # # Process the geocoding
+#    geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
     
     print("\n Database ready for online upload !!!")

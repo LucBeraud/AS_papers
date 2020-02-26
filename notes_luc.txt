@@ -1,0 +1,11 @@
+CREATE TABLE theme (id,theme);
+INSERT INTO theme (id SERIAL,theme VARCHAR(150)) VALUES (1,'TCI - Sensor Systems')
+INSERT INTO theme (id SERIAL,theme VARCHAR(150)) VALUES (2,'TCII - Photogrammetry')
+INSERT INTO theme (id SERIAL,theme VARCHAR(150)) VALUES (3,'TCIII - Remote Sensing')
+INSERT INTO theme (id SERIAL,theme VARCHAR(150)) VALUES (4,'TCIV - Spatial Information Science')
+INSERT INTO theme (id SERIAL,theme VARCHAR(150)) VALUES (5,'TCV - Education and Outreach')
+INSERT INTO theme (id SERIAL,theme VARCHAR(150)) VALUES (5,'TCV - Education and Outreach')
+
+
+select contributor_type from article WHERE contributor_type ILIKE 'TCI %' OR contributor_type ILIKE 'TCI-%'
+UPDATE article SET id_theme = (id FROM theme WHERE theme.contributor_type ILIKE article.contributor_type;

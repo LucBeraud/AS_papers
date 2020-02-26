@@ -1,0 +1,42 @@
+DROP TABLE IF EXISTS article,author,country,isprs_brut,organisation,theme;
+DROP EXTENSION IF EXISTS postgis;
+CREATE EXTENSION postgis;
+
+CREATE TABLE "isprs_brut"(
+  "paperid" character varying(350),
+  "contributor_type" character varying(350),
+  "contributor_format" character varying(350),
+  "authors" character varying(800),
+  "organisations" character varying(1400),
+  "title" character varying(350),
+  "keywords" character varying(350),
+  "topics" character varying(350),
+  "submitting_author" character varying(350),
+  "sa_organisation" character varying(300),
+  "sa_country" character varying(300),
+  "sa_region" character varying(350),
+  "sa_email" character varying(350),
+  "all_emails" character varying(1000),
+  "studentpaper" boolean
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE "isprs_brut"
+  OWNER TO postgres;
+
+GRANT SELECT ON isprs_brut TO PUBLIC;
+
+COPY public."isprs_brut" FROM 'C:\ms4w\Apache\htdocs\AS_papers\Export_IGAST_12022020.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
+
+ALTER TABLE "isprs_brut" ADD COLUMN id SERIAL PRIMARY KEY;
+
+CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid, contributor_type, contributor_format sa_email, authors, organisations, title, topics, keywords, studentpaper,sa_country FROM "isprs_brut";
+ALTER TABLE article ADD PRIMARY KEY (paperid);
+ALTER TABLE article ADD COLUMN geom geometry(point, 4326);
+
+CREATE TABLE theme AS SELECT DISTINCT ON (contributor_type ) contributor_type FROM "isprs_brut";
+ALTER TABLE theme ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE article ADD COLUMN id_theme integer;
+UPDATE article SET id_theme = id FROM theme WHERE theme.contributor_type = article.contributor_type;
+

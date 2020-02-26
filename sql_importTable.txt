@@ -3,95 +3,52 @@ DROP EXTENSION IF EXISTS postgis;
 CREATE EXTENSION postgis;
 
 CREATE TABLE "isprs_brut"(
-  "author_name" character varying(150),
-  "author_lastname" character varying(150),
-  "author_firstname" character varying(150),
-  "author_title" character varying(150),
-  "author_email" character varying(150),
-  "author_orcid" character varying(150),
-  "author_organisation" character varying(300),
-  "author_personid" character varying(150),
-  "author_is_submitter" character varying(150),
-  "author_is_presenting" character varying(150),
-  "author_registration_status" character varying(150),
-  "nope" character varying(5),
-  "paperid" character varying(150),
-  "position_in_list_of_authors" character varying(5),
-  "contributor_type" character varying(150),
-  "nope2" character varying(150),
-  "paper_title" character varying(200),
-  "nope3" character varying(150),
-  "paper_contribution_type" character varying(150),
-  "paper_authors" character varying(300),
-  "paper_organisations" character varying(300),
-  "presenting_author_cv" character varying(150),
-  "nope4" character varying(150),
-  "session_ID" character varying(150),
-  "session_short" character varying(150),
-  "number_in_session" character varying(150),
-  "session_title" character varying(150),
-  "starttime" character varying(150),
-  "endtime" character varying(5),
-  "session_room" character varying(150),
-  "session_formatted" character varying(150),
-  "presentation_starttime" character varying(150),
-  "presentation_endtime" character varying(150),
-  "nope5" character varying(150),
-  "acceptance" character varying(300),
-  "acceptance_status" character varying(150),
-  "withdrawn" character varying(150),
-  "nope6" character varying(150),
-  "sa_title_selected" character varying(150),
-  "sa_formal_salutation" character varying(150),
-  "sa_title_short" character varying(150),
-  "sa_academic_job_title" character varying(150),
-  "person_name" character varying(150),
-  "person_firstname" character varying(150),
-  "person_organisation" character varying(300),
-  "person_organisation2" character varying(150),
-  "person_address1" character varying(300),
-  "person_address2" character varying(300),
-  "person_address3" character varying(300),
-  "person_zip" character varying(150),
-  "person_city" character varying(150),
-  "person_state" character varying(150),
-  "person_countrycode" character varying(150),
-  "nope7" character varying(150),
-  "participant_registration_date" character varying(150),
-  "participant_group" character varying(150),
-  "participant_total" character varying(150),
-  "participant_amount_paid" character varying(150),
-  "participant_amount_open" character varying(150),
-  "participant_canceled" character varying(300),
-  "nope8" character varying(150),
-  "original_filename_a" character varying(300),
-  "download_link_a" character varying(300),
-  "last_upload_a" character varying(150),
-  "original_filename_final_a" character varying(150),
-  "download_final_link_a" character varying(150),
-  "last_upload_final_a" character varying(150),
-  "original_filename_final_b" character varying(150),
-  "download_final_link_b" character varying(150),
-  "last_upload_final_b" character varying(150),
-  "nope9" character varying(150),
-  "nope10" character varying(150),
-  "person_externalremark" character varying(150),
-  "person_internalremark" character varying(150),
-  "person_nationality" character varying(150),
-  "person_dob" character varying(150),
-  "person_pob" character varying(150),
-  "person_memberid" character varying(150),
-  "nope11" character varying(150),
-  "personid" character varying(150),
-  "e1_you_work_in_multiple_choices_are_possibl" character varying(150),
-  "e2_you_are_working_for" character varying(150),
-  "e3_the_size_of_your_company_organization_ag" character varying(150),
-  "e4_you_are_a_" character varying(150),
-  "e5_your_major_scientific_technical_interest" character varying(150),
-  "e6_your_main_business_or_application_intere" character varying(150),
-  "e7_your_primary_technology_interests_are_in" character varying(150),
-  "e8_email_diffusion" character varying(150),
-  "e9_Personal_information" character varying(150)
+  "paperid" character varying(50),
+  "contribution_type" character varying(2000),
+  "contribution_format" character varying(2000),
+  "authors" character varying(2000),
+  "organisations" character varying(2000),
+  "nope1" character varying(10),
+  "title" character varying(2000),
+  "nope2" character varying(10),
+  "keywords" character varying(2000),
+  "topics" character varying(2000),
+  "nope3" character varying(10),
+  "submitting_author" character varying(2000),
+  "sa_organisation" character varying(2000),
+  "sa_country" character varying(2000),
+  "sa_region" character varying(2000),
+  "nope4" character varying(10),
+  "sa_email" character varying(2000),
+  "sa_email2" character varying(2000),
+  "all_emails" character varying(2000),
+  "presenting_author" character varying(2000),
+  "presenting_author_emails" character varying(2000),
+  "presenting_author_cv" character varying(2000),
+  "nope5" character varying(10),
+  "studentpaper" character varying(2000),
+  "extratext" character varying(2000),
+  "extraoption" character varying(2000),
+  "nope6" character varying(10),
+  "nope7" character varying(10),
+  "reviews_assigned" character varying(2000),
+  "reviews_hidden_from_authors" character varying(2000),
+  "meta_reviews_assigned" character varying(2000),
+  "reviews_received" character varying(2000),
+  "meta_reviews_received" character varying(2000),
+  "nope8" character varying(10),
+  "score_average" character varying(2000),
+  "nope9" character varying(10),
+  "acceptance_status" character varying(2000),
+  "acceptance" character varying(2000),
+  "nope10" character varying(10),
+  "paper_external_comment" character varying(8000),
+  "paper_internal_comment" character varying(8000),
+  "paper_comment_chair_to_author" character varying(2000),
+  "nope11" character varying(10),
+  "paper_submitted" character varying(2000),
+  "paper_last_update" character varying(2000),
+  "withdrawn" character varying(2000)
 )
 WITH (
   OIDS=FALSE
@@ -101,23 +58,29 @@ ALTER TABLE "isprs_brut"
 
 GRANT SELECT ON isprs_brut TO PUBLIC;
 
-COPY public."isprs_brut" FROM 'C:\ms4w\Apache\htdocs\AS_papers\ISPRS2020_auteurs.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'latin1');
+COPY public."isprs_brut" FROM 'C:\ms4w\Apache\htdocs\AS_papers\ISPRS2020_papers_2020-02-14_15-29-50.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'utf8');
 
-ALTER TABLE "isprs_brut" ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE "isprs_brut" ADD PRIMARY KEY (paperid);
 
-CREATE TABLE author AS SELECT DISTINCT ON (author_email) author_email,id,author_orcid,author_firstname,author_lastname,person_dob,sa_title_short,person_countrycode,person_city FROM "isprs_brut";
-ALTER TABLE author ADD PRIMARY KEY (author_email);
-
-CREATE TABLE country AS SELECT DISTINCT ON (author_email) author_email,person_countrycode FROM author;
-ALTER TABLE country ADD PRIMARY KEY (author_email);
-
-CREATE TABLE organisation AS SELECT DISTINCT ON (author_email) author_email,person_organisation FROM "isprs_brut";
-ALTER TABLE organisation ADD PRIMARY KEY (author_email);
-
-CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid,author_email as submitter_email,paper_authors,paper_organisations,paper_title,download_link_a,acceptance,acceptance_status FROM "isprs_brut";
+CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid, contribution_type, contribution_format, authors, organisations, title, topics, keywords, studentpaper, sa_country, score_average, acceptance_status, acceptance, paper_submitted FROM "isprs_brut";
 ALTER TABLE article ADD PRIMARY KEY (paperid);
 ALTER TABLE article ADD COLUMN geom geometry(point, 4326);
 
-CREATE TABLE theme AS SELECT DISTINCT ON (paperid) paperid,paper_contribution_type FROM "isprs_brut";
-ALTER TABLE theme ADD PRIMARY KEY (paperid);
 
+CREATE TABLE theme (theme_code character varying(20));
+INSERT INTO theme (theme_code) VALUES ('TCI');
+INSERT INTO theme (theme_code) VALUES ('TCII');
+INSERT INTO theme (theme_code) VALUES ('TCIII');
+INSERT INTO theme (theme_code) VALUES ('TCIV');
+INSERT INTO theme (theme_code) VALUES ('TCV');
+INSERT INTO theme (theme_code) VALUES ('TS');
+INSERT INTO theme (theme_code) VALUES ('Youth Forum');
+INSERT INTO theme (theme_code) VALUES ('Special Group');
+ALTER TABLE theme ADD COLUMN id SERIAL PRIMARY KEY;
+
+ALTER TABLE article ADD COLUMN id_theme integer;
+UPDATE article SET id_theme = id FROM theme 
+WHERE article.contribution_type LIKE '%'||theme.theme_code||' %' 
+OR article.contribution_type LIKE '%'||theme.theme_code||'-%' 
+OR article.contribution_type LIKE '%'||theme.theme_code||'\_%' 
+OR (article.contribution_type LIKE '%'||theme.theme_code||'%' AND article.contribution_type LIKE '%Youth Forum%')
