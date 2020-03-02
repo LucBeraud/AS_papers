@@ -21,9 +21,6 @@ include 'php/db_connect.php';
     <!-- Bootstrap Core Css -->
     <link href="plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
 
-    <!-- Bootstrap Select Css -->
-    <link href="plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-
     <!-- Waves Effect Css -->
     <link href="plugins/node-waves/waves.css" rel="stylesheet" />
 
@@ -177,52 +174,9 @@ include 'php/db_connect.php';
         <!-- Right Sidebar -->
         <aside id="rightsidebar" class="right-sidebar">
             <ul class="nav nav-tabs tab-nav-right" role="tablist">
-                <li role="presentation" class="active"><a href="#skins" data-toggle="tab">Filters </a></li>
-                <li role="presentation"><a href="#settings" data-toggle="tab">Parameters</a></li>
+                <li role="presentation" class="active"><a href="#skins" data-toggle="tab">Paramètres </a></li>
+                <li role="presentation"><a href="#settings" data-toggle="tab">Paramètres</a></li>
             </ul>
-            <div class="tab-content">
-                <div role="tabpanel" class="tab-pane fade in active in active" id="skins">
-                <div class="row clearfix">
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                            <p>
-                                <b>Themes</b>
-                            </p>
-                            <select class="form-control show-tick" id="select_themes">
-                                <?php 
-                                $query = 'SELECT id_theme, paper_contribution_type AS themee FROM theme';
-                                $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
-                                while ($row=pg_fetch_row($result)) {
-                                ?>
-                                <option id="<?php  echo $row[0] ?>" value="<?php  echo $row[1] ?>"><?php  echo $row[1] ?></option>
-                                <?php } ?>
-
-                            </select>
-                            
-                        </div>
-                    </div>
-                    <div class="row clearfix">
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                            <p>
-                                <b>Country</b>
-                            </p>
-                            <select class="form-control show-tick" id="select_country">
-                                <?php 
-                                $query = 'SELECT id, sovereignt AS country_name FROM country';
-                                $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
-                                while ($row=pg_fetch_row($result)) {
-                                ?>
-                                <option id="<?php  echo $row[0] ?>" value="<?php  echo $row[1] ?>"><?php  echo $row[1] ?></option>
-                                <?php } ?>
-
-                            </select>
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row clearfix">
-                        <center><button type="button" class="btn btn-info waves-effect" id="go_button">Go</button></center>
-                    </div>
-                </div>      
-            </div>
         </aside>
         <!-- #END# Right Sidebar -->
     </section>
@@ -231,7 +185,7 @@ include 'php/db_connect.php';
     </section>
     
     <!-- Jquery Core Js -->
-    <script src="plugins/jquery/jquery.min.js"></script>
+    <script src="plugins/jquery/jquery.js"></script>
 
     <!-- Bootstrap Core Js -->
     <script src="plugins/bootstrap/js/bootstrap.js"></script>
@@ -247,6 +201,7 @@ include 'php/db_connect.php';
 
     <!-- Custom Js -->
     <script src="js/admin.js"></script>
+    <script src="js/pages/index.js"></script>
 
     <!-- Demo Js -->
     <script src="js/demo.js"></script>
@@ -262,9 +217,6 @@ include 'php/db_connect.php';
 
     <!-- Map script -->
     <script type="text/javascript" src="js/add_layer.js"></script>
-
-    <!-- Filters script -->
-    <script type="text/javascript" src="js/filters.js"></script>
 </body>
 
 </html>
