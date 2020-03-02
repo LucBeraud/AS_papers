@@ -111,17 +111,26 @@ def geocoding(list_adress):
     verbose=False
     nb_error = 0
     count = 0
+    l = len(list_adress)
+    print(l," adress to geocode")
+    start_time = time.time()
+    t_estimated = -60
     for adress in list_adress:
-        if count//20==0:print(count/(2*len(adress))*100,'%')
+        print(count,' ',round(count*100/l,2),'%, ',round(t_estimated/60,2),'min for all estimated')
         count+=1
+        if count==20:
+            intermed_time = time.time()
+            t_estimated = l*(intermed_time-start_time)/20
         try: 
             try:
                 location = geocoder.osm(adress)
                 rep=location.json
+#                print(adress)
                 coordinates.append([rep['lat'], rep['lng']]) 
                 verbose=True
+                time.sleep(2)
             except:
-                time.sleep(1)
+                time.sleep(2)
                 try:
                     #we get the list elements after the first comma
                     adress_bis = adress.split(',')[1:]
@@ -131,20 +140,23 @@ def geocoding(list_adress):
                         adress2+=ad
                     location = geocoder.osm(adress2)
                     rep=location.json
+#                    print(adress2)
                     coordinates.append([rep['lat'], rep['lng']]) 
                     verbose=True
                 except :
-                    time.sleep(1)
+                    time.sleep(2)
                     try:
                         #we get the last list element 
                         adress = adress.split(',')[-1]
                         location = geocoder.osm(adress)
                         rep=location.json
+#                        print(adress)
                         coordinates.append([rep['lat'], rep['lng']]) 
                         verbose=True
                     except:
                         nb_error+=1
                         print('--')
+                        coordinates.append([400,400])
         except AttributeError as e :
             print("Nonvalid address, ",e)
             verbose=False
@@ -163,6 +175,8 @@ def geometry_column(coordinates,list_adress,paperid):
     for i in range(len(coordinates)):
         x=coordinates[i][1]
         y=coordinates[i][0]
+        if x==400:
+            continue
         try:
             line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
             conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
@@ -198,6 +212,6 @@ if __name__ == '__main__':
     preproc_createtables(sqlcommand_ini)   # Execute the creation of the tables according to the database model
     list_adress,paperid = preproc_geocoding() # Get the adress of the main author's organization in the database
     coordinates=geocoding(list_adress) # # Process the geocoding
-#    geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
+    geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
     
     print("\n Database ready for online upload !!!")
