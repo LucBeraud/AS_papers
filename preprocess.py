@@ -14,7 +14,6 @@ This script prepare the database from the CSV file of the ISPRS application form
 import psycopg2
 from inspect import currentframe, getframeinfo
 import geocoder
-import time
 
 ########## Function that returns the query commands from a text file which will be executed in the next function
 def load_commands():
@@ -57,6 +56,7 @@ def preproc_createtables(sqlcommand_ini):
         print("Unable to connect to the database | see line "+str(line_conn))
                
 
+########## Function that returns addresses list of each article's organisations
 def preproc_geocoding():
     """
     Part of the geocoding: get the adress of the main author's organization and paper identifiers to be geocoded.
@@ -70,7 +70,7 @@ def preproc_geocoding():
             curs = conn.cursor() # create cursor
             try:
                 line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-                curs.execute("SELECT organisations FROM article")    # execute SQL command, get adresses of the first author
+                curs.execute("SELECT paper_organisations FROM article")    # execute SQL command, get adresses of the first author
                 rows = curs.fetchall() # fetches all rows of the query result set and returns a list of tuples
                 #print(rows)
                 list_adress = [] 
@@ -109,11 +109,7 @@ def geocoding(list_adress):
     """
     coordinates=[] #List that will contain the latitude and the longitude of each address 
     verbose=False
-    nb_error = 0
-    count = 0
     for adress in list_adress:
-        if count//20==0:print(count/(2*len(adress))*100,'%')
-        count+=1
         try: 
             try:
                 location = geocoder.osm(adress)
@@ -121,7 +117,6 @@ def geocoding(list_adress):
                 coordinates.append([rep['lat'], rep['lng']]) 
                 verbose=True
             except:
-                time.sleep(1)
                 try:
                     #we get the list elements after the first comma
                     adress_bis = adress.split(',')[1:]
@@ -134,23 +129,18 @@ def geocoding(list_adress):
                     coordinates.append([rep['lat'], rep['lng']]) 
                     verbose=True
                 except :
-                    time.sleep(1)
-                    try:
-                        #we get the last list element 
-                        adress = adress.split(',')[-1]
-                        location = geocoder.osm(adress)
-                        rep=location.json
-                        coordinates.append([rep['lat'], rep['lng']]) 
-                        verbose=True
-                    except:
-                        nb_error+=1
-                        print('--')
+                    #we get the last list element 
+                    adress = adress.split(',')[-1]
+                    location = geocoder.osm(adress)
+                    rep=location.json
+                    coordinates.append([rep['lat'], rep['lng']]) 
+                    verbose=True
         except AttributeError as e :
             print("Nonvalid address, ",e)
             verbose=False
             
     if(verbose):
-            print("Preprocessing 3 finished, got %f errors with no geometry\n" %(nb_error))    
+            print("Preprocessing 3 finished\n")    
     return coordinates 
 
 def geometry_column(coordinates,list_adress,paperid):
@@ -189,15 +179,15 @@ if __name__ == '__main__':
     Define database caracteristics
     """
     global datbname;global user_db; global pswd; global dbhost; global dbport
-    datbname = "ISPRS";user_db = "postgres";pswd = "postgres";dbhost = "localhost";dbport = "5432"
+    datbname = "ISPRS";user_db = "postgres";pswd = "postgres";dbhost = "localhost";dbport = "5433"
     
     """
     Processing
     """
     sqlcommand_ini = load_commands()    # Load SQL command filesprint(sqlcommand_ini)
     preproc_createtables(sqlcommand_ini)   # Execute the creation of the tables according to the database model
-    list_adress,paperid = preproc_geocoding() # Get the adress of the main author's organization in the database
+    list_adress,paperid=preproc_geocoding() # Get the adress of the main author's organization in the database
     coordinates=geocoding(list_adress) # # Process the geocoding
-#    geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
+    geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
     
     print("\n Database ready for online upload !!!")
