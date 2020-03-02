@@ -58,11 +58,11 @@ ALTER TABLE "isprs_brut"
 
 GRANT SELECT ON isprs_brut TO PUBLIC;
 
-COPY public."isprs_brut" FROM 'C:\ms4w\Apache\htdocs\AS_papers\ISPRS2020_papers_2020-02-14_15-29-50.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'utf8');
+COPY public."isprs_brut" FROM 'C:\ms4w\Apache\htdocs\ISPRS2020_papers_2020-02-14_15-29-50.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'utf8');
 
 ALTER TABLE "isprs_brut" ADD PRIMARY KEY (paperid);
 
-CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid, contribution_type, contribution_format, authors, organisations, title, topics, keywords, studentpaper, sa_country, score_average, acceptance_status, acceptance, paper_submitted FROM "isprs_brut";
+CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid, contribution_type, contribution_format, organisations, title, topics, keywords, studentpaper, sa_country, score_average, acceptance_status, acceptance, paper_submitted FROM "isprs_brut";
 ALTER TABLE article ADD PRIMARY KEY (paperid);
 ALTER TABLE article ADD COLUMN geom geometry(point, 4326);
 
@@ -83,4 +83,6 @@ UPDATE article SET id_theme = id FROM theme
 WHERE article.contribution_type LIKE '%'||theme.theme_code||' %' 
 OR article.contribution_type LIKE '%'||theme.theme_code||'-%' 
 OR article.contribution_type LIKE '%'||theme.theme_code||'\_%' 
-OR (article.contribution_type LIKE '%'||theme.theme_code||'%' AND article.contribution_type LIKE '%Youth Forum%')
+OR (article.contribution_type LIKE '%'||theme.theme_code||'%' AND article.contribution_type LIKE '%Youth Forum%');
+
+DROP TABLE isprs_brut;
