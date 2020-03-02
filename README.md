@@ -7,3 +7,5 @@ Quelques liens:
 
 Note : cf regexp pour trouver expressions régulières (ex listes d'auteurs sous format particulier et régulier) délimiter case qui contient le delimiteur du csv
 verif caract utf-8 pour caractères couverts ? (ex nom université en chine)
+
+Google doc du rapport : https://drive.google.com/file/d/1bo0cdqc84HXwgei7MmPiWKxz-y34Fq0e/view?usp=sharing
