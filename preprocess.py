@@ -116,7 +116,8 @@ def geocoding(list_adress):
     start_time = time.time()
     t_estimated = -60
     for adress in list_adress:
-        print(count,' ',round(count*100/l,2),'%, ',round(t_estimated/60,2),'min for all estimated')
+        temps = time.time()
+        print(count,' ',round(count*100/l,2),'%  ',round((t_estimated-(temps-start_time))/60,2),'min remaining')
         count+=1
         if count==20:
             intermed_time = time.time()
