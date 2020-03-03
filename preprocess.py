@@ -15,6 +15,7 @@ import psycopg2
 from inspect import currentframe, getframeinfo
 import geocoder
 import time
+import random
 
 ########## Function that returns the query commands from a text file which will be executed in the next function
 def load_commands():
@@ -52,7 +53,7 @@ def preproc_createtables(sqlcommand_ini):
         #closing database connection.
             if(conn):
                 conn.close()
-                print("Preprocessing 1 finished, connexion closed \n")
+                print("\nInitialization of tables finished, connexion closed \n")
     except:
         print("Unable to connect to the database | see line "+str(line_conn))
                
@@ -96,7 +97,7 @@ def preproc_geocoding():
         #closing database connection.
             if(conn):
                 conn.close()
-                print("Preprocessing 2 finished, connexion closed \n")
+                print("\nGetting adresses finished, connexion closed \n")
     except:
         print("Unable to connect to the database | see line "+str(line_conn))
     return list_adress,paperid
@@ -106,6 +107,9 @@ def geocoding(list_adress):
     Part of the geocoding: do the location requests of the adresses and return longitudes and latitudes
     param list_adress: list of adresses to geocode (string)
     return coordinates: geolocated coordinates of the adresses (longitude, latitude)
+    
+    Error of geocoding : maybe OSM detect a bot through regular request -> set a random counter between 1.5 and 2.5sec ?
+    Otherwise, a loooot of request fails (and also maybe a OSM usual saturation affect it)
     """
     coordinates=[] #List that will contain the latitude and the longitude of each address 
     verbose=False
@@ -116,22 +120,23 @@ def geocoding(list_adress):
     start_time = time.time()
     t_estimated = -60
     for adress in list_adress:
+        if count==200:break #######
         temps = time.time()
-        print(count,' ',round(count*100/l,2),'%  ',round((t_estimated-(temps-start_time))/60,2),'min remaining')
+        print('\n',str(count+1)+'/'+str(l),' ',round(count*100/l,2),'% | ',round((t_estimated-(temps-start_time))/60,2),'min remaining')
         count+=1
-        if count==20:
-            intermed_time = time.time()
-            t_estimated = l*(intermed_time-start_time)/20
+        intermed_time = time.time()
+        t_estimated = l*(intermed_time-start_time)/count
         try: 
             try:
                 location = geocoder.osm(adress)
                 rep=location.json
 #                print(adress)
                 coordinates.append([rep['lat'], rep['lng']]) 
+                print(adress)
                 verbose=True
-                time.sleep(2)
+                time.sleep(random.random()+1.5)
             except:
-                time.sleep(2)
+                time.sleep(random.random()+1.5)
                 try:
                     #we get the list elements after the first comma
                     adress_bis = adress.split(',')[1:]
@@ -143,9 +148,10 @@ def geocoding(list_adress):
                     rep=location.json
 #                    print(adress2)
                     coordinates.append([rep['lat'], rep['lng']]) 
+                    print(adress2)
                     verbose=True
                 except :
-                    time.sleep(2)
+                    time.sleep(random.random()+1.5)
                     try:
                         #we get the last list element 
                         adress = adress.split(',')[-1]
@@ -153,6 +159,7 @@ def geocoding(list_adress):
                         rep=location.json
 #                        print(adress)
                         coordinates.append([rep['lat'], rep['lng']]) 
+                        print(adress)
                         verbose=True
                     except:
                         nb_error+=1
@@ -163,7 +170,7 @@ def geocoding(list_adress):
             verbose=False
             
     if(verbose):
-            print("Preprocessing 3 finished, got %f errors with no geometry\n" %(nb_error))    
+            print("\nGeocoding finished, got %s errors without geometry\n" %(str(nb_error)))    
     return coordinates 
 
 def geometry_column(coordinates,list_adress,paperid):
@@ -195,7 +202,7 @@ def geometry_column(coordinates,list_adress,paperid):
     #closing database connection.
     if(conn):
         conn.close()
-        print("Preprocessing 4 finished, connexion closed \n")
+        print("\nSpatializing finished, connexion closed \n")
     
 
 if __name__ == '__main__':
