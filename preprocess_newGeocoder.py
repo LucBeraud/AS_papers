@@ -81,7 +81,7 @@ def preproc_geocoding():
                     paperid.append(rows[i][0])
                     if ";" in rows[i][1]:
                         line = rows[i][1].split(";")
-                        adress = line[1][3:]
+                        adress = line[0][3:]
                     else:
                         adress = rows[i][1]
                     list_adress.append(adress)
