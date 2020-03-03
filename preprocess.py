@@ -23,7 +23,7 @@ def load_commands():
     Load SQL command from text files (prevent tens of ugly lines just for that)
     return: String with the SQL command line
     """
-    file_sqlcommand_ini = open("C:/ms4w/Apache/htdocs/AS_papers/sql_importTable.txt")
+    file_sqlcommand_ini = open("C:/Users/BERAUD/Desktop/ENSG/IT3/Prj-ISPRS/AS_papers/sql_importTable.txt")
     list_sqlcommand_ini = file_sqlcommand_ini.readlines()   # get all lines into a list
     sqlcommand_ini = ''     # to convert list to string
     for x in list_sqlcommand_ini:   # loop over all lines

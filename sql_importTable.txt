@@ -58,7 +58,7 @@ ALTER TABLE "isprs_brut"
 
 GRANT SELECT ON isprs_brut TO PUBLIC;
 
-COPY public."isprs_brut" FROM 'C:\ms4w\Apache\htdocs\ISPRS2020_papers_2020-02-14_15-29-50.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'utf8');
+COPY public."isprs_brut" FROM 'C:\Users\BERAUD\Desktop\ENSG\IT3\Prj-ISPRS\ISPRS2020_papers_2020-02-14_15-29-50.csv' WITH (FORMAT 'csv', DELIMITER ';',HEADER, ENCODING 'utf8');
 
 ALTER TABLE "isprs_brut" ADD PRIMARY KEY (paperid);
 
