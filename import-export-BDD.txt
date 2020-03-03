@@ -1,0 +1,2 @@
+Export --> Dans C:\Program Files\PostgreSQL\11\bin : pg_dump -U postgres ISPRS > C:\ms4w\Apache\htdocs\AS_papers\ISPRS_dbexport.pgsql
+Import --> Dans C:\Program Files\PostgreSQL\11\bin (y coller ISPRS_dbexport.pgsql et creer BDD vide ISPRS) : psql -U postgres ISPRS < ISPRS_dbexport.pgsql

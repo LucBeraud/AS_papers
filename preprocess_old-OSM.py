@@ -11,9 +11,9 @@ This script require the definition of a PostgreSQL database. Fill the connection
 This script prepare the database from the CSV file of the ISPRS application form to the spatial database with the information of the articles, authors and location of the main author's organization.
 """
 
-import psycopg2 # 
+import psycopg2
 from inspect import currentframe, getframeinfo
-from opencage.geocoder import OpenCageGeocode
+import geocoder
 import time
 import random
 
@@ -71,20 +71,24 @@ def preproc_geocoding():
             curs = conn.cursor() # create cursor
             try:
                 line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-                curs.execute("SELECT paperid,organisations FROM article")    # execute SQL command, get adresses of the first author
+                curs.execute("SELECT organisations FROM article")    # execute SQL command, get adresses of the first author
                 rows = curs.fetchall() # fetches all rows of the query result set and returns a list of tuples
                 #print(rows)
                 list_adress = [] 
-                paperid = []
                 #Filling the address list 
                 for i in range(len(rows)):
-                    paperid.append(rows[i][0])
-                    if ";" in rows[i][1]:
-                        line = rows[i][1].split(";")
-                        adress = line[1][3:]
+                    if ";" in rows[i][0]:
+                        line = rows[i][0].split(";")
+                        adress = line[0][3:]
                     else:
-                        adress = rows[i][1]
+                        adress = rows[i][0]
                     list_adress.append(adress)
+                
+                curs.execute("SELECT paperid FROM article")    # get paper id to be used when defining the geometry after the geocoding
+                rows = curs.fetchall() # fetches all rows of the query result set and returns a list of tuples
+                paperid = []
+                for papid in rows:
+                    paperid.append(papid[0])
             except psycopg2.Error as e:
                 print(e, ' | error probably line '+str(line_execCmdIni))
         except psycopg2.Error as e:
@@ -98,7 +102,7 @@ def preproc_geocoding():
         print("Unable to connect to the database | see line "+str(line_conn))
     return list_adress,paperid
 
-def geocoding(list_adress,paperid):
+def geocoding(list_adress):
     """
     Part of the geocoding: do the location requests of the adresses and return longitudes and latitudes
     param list_adress: list of adresses to geocode (string)
@@ -115,10 +119,8 @@ def geocoding(list_adress,paperid):
     print(l," adress to geocode")
     start_time = time.time()
     t_estimated = -60
-    key = 'c9c6a755c8764c9d8f07d09f96794fdd' # API key linked to a personnal account. /!\ Limited to 2500 requests/day (and 15000 request/month ?) !!!!!!!!!
-    geocoder = OpenCageGeocode(key)
-    for i,adress in enumerate(list_adress):
-#        if count==10:break #######
+    for adress in list_adress:
+        if count==200:break #######
         temps = time.time()
         print('\n',str(count+1)+'/'+str(l),' ',round(count*100/l,2),'% | ',round((t_estimated-(temps-start_time))/60,2),'min remaining')
         count+=1
@@ -126,9 +128,10 @@ def geocoding(list_adress,paperid):
         t_estimated = l*(intermed_time-start_time)/count
         try: 
             try:
-                results = geocoder.geocode(adress)
-                coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']]) 
-                results = 0
+                location = geocoder.osm(adress)
+                rep=location.json
+#                print(adress)
+                coordinates.append([rep['lat'], rep['lng']]) 
                 print(adress)
                 verbose=True
                 time.sleep(random.random()+1.5)
@@ -141,9 +144,10 @@ def geocoding(list_adress,paperid):
                     #we concatenate the adress elements                        
                     for ad in adress_bis:
                         adress2+=ad
-                    results = geocoder.geocode(adress2)
-                    coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']])
-                    results = 0
+                    location = geocoder.osm(adress2)
+                    rep=location.json
+#                    print(adress2)
+                    coordinates.append([rep['lat'], rep['lng']]) 
                     print(adress2)
                     verbose=True
                 except :
@@ -151,9 +155,10 @@ def geocoding(list_adress,paperid):
                     try:
                         #we get the last list element 
                         adress = adress.split(',')[-1]
-                        results = geocoder.geocode(adress)
-                        coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']])
-                        results = 0
+                        location = geocoder.osm(adress)
+                        rep=location.json
+#                        print(adress)
+                        coordinates.append([rep['lat'], rep['lng']]) 
                         print(adress)
                         verbose=True
                     except:
@@ -171,7 +176,6 @@ def geocoding(list_adress,paperid):
 def geometry_column(coordinates,list_adress,paperid):
     """
     Function that fills the geometry column using the coordinates list
-    In the end  : table articles with everything, and geoarticles without fields without geometry
     param coordinates: geolocated coordinates of the adresses (longitude, latitude)
     param list_adress: list of the adress (string) to geocode
     param paperid: list of the paper identifiers (string)
@@ -186,26 +190,15 @@ def geometry_column(coordinates,list_adress,paperid):
             conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
             curs = conn.cursor()    # create cursor
             try:
-                line_execCmdIni2 = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
+                line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
                 postgres_insert_query = "UPDATE article SET geom= ST_SetSRID(ST_MakePoint(%s,%s), 4326) WHERE paperid=%s;"
                 record_to_insert = (x,y, paperid[i])
                 curs.execute(postgres_insert_query, record_to_insert)
                 conn.commit()   # commit, validate the changes in the database
             except psycopg2.Error as e:
-                print(e, ' | error probably line '+str(line_execCmdIni2))
+                print(e, ' | error probably line '+str(line_execCmdIni))
         except:
             print("Unable to connect to the database | see line "+str(line_conn))
-    try:
-        line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-        conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
-        curs = conn.cursor()    # create cursor
-        line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-#        curs.execute("ALTER TABLE article DROP COLUMN organisations;")
-        curs.execute("CREATE TABLE geoarticles AS SELECT * FROM article WHERE geom IS NOT NULL;")
-#        curs.execute("DROP TABLE article;")
-        conn.commit()   # commit, validate the changes in the database
-    except psycopg2.Error as e:
-        print(e, ' | error probably line '+str(line_execCmdIni))
     #closing database connection.
     if(conn):
         conn.close()
@@ -226,7 +219,7 @@ if __name__ == '__main__':
     sqlcommand_ini = load_commands()    # Load SQL command filesprint(sqlcommand_ini)
     preproc_createtables(sqlcommand_ini)   # Execute the creation of the tables according to the database model
     list_adress,paperid = preproc_geocoding() # Get the adress of the main author's organization in the database
-    coordinates=geocoding(list_adress,paperid) # # Process the geocoding
+    coordinates=geocoding(list_adress) # # Process the geocoding
     geometry_column(coordinates,list_adress,paperid) # Insert the geometry in the postgis database
     
     print("\n Database ready for online upload !!!")
