@@ -62,9 +62,12 @@ COPY public."isprs_brut" FROM 'C:/ms4w/Apache/htdocs/ISPRS2020_papers_2020-02-14
 
 ALTER TABLE "isprs_brut" ADD PRIMARY KEY (paperid);
 
-CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid, contribution_type, contribution_format, organisations, title, topics, keywords, studentpaper, score_average, acceptance_status, acceptance, paper_submitted FROM "isprs_brut";
+CREATE TABLE article AS SELECT DISTINCT ON (paperid) paperid,authors, contribution_type, contribution_format, organisations, title, topics, keywords, studentpaper, score_average, acceptance_status, acceptance, paper_submitted FROM "isprs_brut";
 ALTER TABLE article ADD PRIMARY KEY (paperid);
 ALTER TABLE article ADD COLUMN geom geometry(point, 4326);
+ALTER TABLE article ADD COLUMN nb_authors INTEGER;
+UPDATE article SET nb_authors = LENGTH(authors)-LENGTH(REPLACE(authors,';',''))+1;
+ALTER TABLE article DROP COLUMN authors;
 
 
 CREATE TABLE theme (theme_code character varying(20));

@@ -11,30 +11,29 @@ This script require the definition of a PostgreSQL database. Fill the connection
 This script prepare the database from the CSV file of the ISPRS application form to the spatial database with the information of the articles, authors and location of the main author's organization.
 """
 
-import psycopg2 # 
-from inspect import currentframe, getframeinfo
-from opencage.geocoder import OpenCageGeocode
-import time
-import random
+import psycopg2 # library for postgresql
+from inspect import currentframe, getframeinfo # library to get line numbers in the script
+from opencage.geocoder import OpenCageGeocode # library of geocoding, 2500 requests/day for free account
+import time # library for time gestion
+import random # library for generating random numbers (used to delay geocoding request avoiding overflow)
 
-########## Function that returns the query commands from a text file which will be executed in the next function
-def load_commands():
+def load_commands(path):
     """
     Load SQL command from text files (prevent tens of ugly lines just for that)
-    return: String with the SQL command line
+    param path: path of the SQL commands file to load
+    return: String with the SQL commands lines
     """
-    file_sqlcommand_ini = open("C:/ms4w/Apache/htdocs/AS_papers/sql_importTable.txt")
+    file_sqlcommand_ini = open(path)
     list_sqlcommand_ini = file_sqlcommand_ini.readlines()   # get all lines into a list
     sqlcommand_ini = ''     # to convert list to string
     for x in list_sqlcommand_ini:   # loop over all lines
         sqlcommand_ini+=x   # concatenate the next command part
     return sqlcommand_ini
 
-########## Function that creates tables using the sqlcommand_ini
 def preproc_createtables(sqlcommand_ini):
     """
-    Do the preprocessing of the table. Main function.
-    Be carefull : drop tables article,author,country,isprs_brut,organisation,theme and postgis extension if exists
+    Do the preprocessing of the table. Main function using the SQL commands in the SQL commands text file.
+    Be carefull : drop tables article,theme and postgis extension if exists
     param sqlcommand_ini: String, first SQL command line to execute, initialize and pre-fill the tables
     """
     try:
@@ -96,7 +95,7 @@ def preproc_geocoding():
                 print("\nGetting adresses finished, connexion closed \n")
     except:
         print("Unable to connect to the database | see line "+str(line_conn))
-    return list_adress,paperid
+    return(list_adress,paperid)
 
 def geocoding(list_adress,paperid):
     """
@@ -126,14 +125,15 @@ def geocoding(list_adress,paperid):
         t_estimated = l*(intermed_time-start_time)/count
         try: 
             try:
-                results = geocoder.geocode(adress)
+#                results = geocoder.geocode(adress)
+                results = geocoder.geocode(adress,limit='1',no_record='1')
                 coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']]) 
                 results = 0
                 print(adress)
                 verbose=True
-                time.sleep(random.random()+1.5)
+                time.sleep(random.random()+1.3)
             except:
-                time.sleep(random.random()+1.5)
+                time.sleep(random.random()+1.3)
                 try:
                     #we get the list elements after the first comma
                     adress_bis = adress.split(',')[1:]
@@ -141,17 +141,17 @@ def geocoding(list_adress,paperid):
                     #we concatenate the adress elements                        
                     for ad in adress_bis:
                         adress2+=ad
-                    results = geocoder.geocode(adress2)
+                    results = geocoder.geocode(adress2,limit='1',no_record='1')
                     coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']])
                     results = 0
                     print(adress2)
                     verbose=True
                 except :
-                    time.sleep(random.random()+1.5)
+                    time.sleep(random.random()+1.3)
                     try:
                         #we get the last list element 
                         adress = adress.split(',')[-1]
-                        results = geocoder.geocode(adress)
+                        results = geocoder.geocode(adress,limit='1',no_record='1')
                         coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']])
                         results = 0
                         print(adress)
@@ -165,7 +165,7 @@ def geocoding(list_adress,paperid):
             verbose=False
             
     if(verbose):
-            print("\nGeocoding finished, got %s errors without geometry\n" %(str(nb_error)))    
+            print("\nGeocoding finished, got %s errors set without geometry\n" %(str(nb_error)))    
     return coordinates 
 
 def geometry_column(coordinates,list_adress,paperid):
@@ -200,7 +200,7 @@ def geometry_column(coordinates,list_adress,paperid):
         conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
         curs = conn.cursor()    # create cursor
         line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-#        curs.execute("ALTER TABLE article DROP COLUMN organisations;")
+        curs.execute("ALTER TABLE article DROP COLUMN organisations;")
         curs.execute("CREATE TABLE geoarticles AS SELECT * FROM article WHERE geom IS NOT NULL;")
 #        curs.execute("DROP TABLE article;")
         conn.commit()   # commit, validate the changes in the database
@@ -223,7 +223,8 @@ if __name__ == '__main__':
     """
     Processing
     """
-    sqlcommand_ini = load_commands()    # Load SQL command filesprint(sqlcommand_ini)
+    path = "C:/ms4w/Apache/htdocs/AS_papers/sql_importTable.txt"
+    sqlcommand_ini = load_commands(path)    # Load SQL command filesprint(sqlcommand_ini)
     preproc_createtables(sqlcommand_ini)   # Execute the creation of the tables according to the database model
     list_adress,paperid = preproc_geocoding() # Get the adress of the main author's organization in the database
     coordinates=geocoding(list_adress,paperid) # # Process the geocoding
