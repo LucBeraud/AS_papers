@@ -123,7 +123,7 @@ def geocoding(list_adress,paperid):
         try:
             try:
 #                results = geocoder.geocode(adress)
-                results = geocoder.geocode(adress,limit='1',no_record='1') # Geocoding request
+                results = geocoder.geocode(adress,limit='1',no_record='1') # Geocoding request, no_record=1 asking to not record the log of the request in their server (adress privacy, we never know), limit=1 because we only want the first answser so not need to have the 9 other behind
                 coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']]) # Saving returned coordinates
                 results = 0 # reset result in case of non-return next time
                 print(adress)
