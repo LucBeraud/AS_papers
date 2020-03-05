@@ -125,7 +125,7 @@ def geocoding(list_adress,paperid):
 #                results = geocoder.geocode(adress)
                 results = geocoder.geocode(adress,limit='1',no_record='1') # Geocoding request, no_record=1 asking to not record the log of the request in their server (adress privacy, we never know), limit=1 because we only want the first answser so not need to have the 9 other behind
                 coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']]) # Saving returned coordinates
-                results = 0 # reset result in case of non-return next time
+                del results # delete temporary result in case of non-return next time
                 print(adress)
                 time.sleep(random.random()+1.3)
             except:
@@ -139,7 +139,7 @@ def geocoding(list_adress,paperid):
                         adress2+=ad
                     results = geocoder.geocode(adress2,limit='1',no_record='1') # same as before
                     coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']]) # same as before
-                    results = 0
+                    del results
                     print(adress2)
                 except :
                     time.sleep(random.random()+1.3)
@@ -148,7 +148,7 @@ def geocoding(list_adress,paperid):
                         adress = adress.split(',')[-1]
                         results = geocoder.geocode(adress,limit='1',no_record='1') # same as before
                         coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']]) # same as before
-                        results = 0
+                        del results
                         print(adress)
                     except:
                         nb_error+=1 # counting the number of errors
@@ -196,7 +196,7 @@ def geometry_column(coordinates,list_adress,paperid):
         curs = conn.cursor()    # create cursor
         line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
         curs.execute("ALTER TABLE article DROP COLUMN organisations;") # deletion of the organization colum
-        curs.execute("CREATE TABLE geoarticles AS SELECT * FROM article WHERE geom IS NOT NULL;") # create a new table with valid geometries only
+#        curs.execute("CREATE TABLE geoarticles AS SELECT * FROM article WHERE geom IS NOT NULL;") # create a new table with valid geometries only
 #        curs.execute("DROP TABLE article;") # if we want to delete the table with all (valid and non-valid) geometries
         conn.commit() # commit, validate the changes in the database
     except psycopg2.Error as e:
