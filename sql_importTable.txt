@@ -3,7 +3,7 @@ DROP EXTENSION IF EXISTS postgis;
 CREATE EXTENSION postgis;
 
 CREATE TABLE "isprs_brut"(
-  "paperid" character varying(50),
+  "paperid" integer,
   "contribution_type" character varying(2000),
   "contribution_format" character varying(2000),
   "authors" character varying(2000),
@@ -26,7 +26,7 @@ CREATE TABLE "isprs_brut"(
   "presenting_author_emails" character varying(2000),
   "presenting_author_cv" character varying(2000),
   "nope5" character varying(10),
-  "studentpaper" character varying(2000),
+  "studentpaper" boolean,
   "extratext" character varying(2000),
   "extraoption" character varying(2000),
   "nope6" character varying(10),
@@ -37,16 +37,16 @@ CREATE TABLE "isprs_brut"(
   "reviews_received" character varying(2000),
   "meta_reviews_received" character varying(2000),
   "nope8" character varying(10),
-  "score_average" character varying(2000),
+  "score_average" character varying(10),
   "nope9" character varying(10),
-  "acceptance_status" character varying(2000),
+  "acceptance_status" integer,
   "acceptance" character varying(2000),
   "nope10" character varying(10),
   "paper_external_comment" character varying(8000),
   "paper_internal_comment" character varying(8000),
   "paper_comment_chair_to_author" character varying(2000),
   "nope11" character varying(10),
-  "paper_submitted" character varying(2000),
+  "paper_submitted" timestamp,
   "paper_last_update" character varying(2000),
   "withdrawn" character varying(2000)
 )

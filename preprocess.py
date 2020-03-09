@@ -127,9 +127,9 @@ def geocoding(list_adress,paperid):
                 coordinates.append([results[0]['geometry']['lat'], results[0]['geometry']['lng']]) # Saving returned coordinates
                 del results # delete temporary result in case of non-return next time
                 print(adress)
-                time.sleep(random.random()+1.3)
+                time.sleep(random.random()+1.2)
             except:
-                time.sleep(random.random()+1.3)
+                time.sleep(random.random()+1.2)
                 try:
                     #we get the adress elements after the first comma
                     adress_bis = adress.split(',')[1:]
@@ -142,7 +142,7 @@ def geocoding(list_adress,paperid):
                     del results
                     print(adress2)
                 except :
-                    time.sleep(random.random()+1.3)
+                    time.sleep(random.random()+1.2)
                     try:
                         #we get the last list element 
                         adress = adress.split(',')[-1]
