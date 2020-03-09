@@ -193,12 +193,12 @@ def geometry_column(coordinates,list_adress,paperid):
     try:
         line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
         conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
-        curs = conn.cursor()    # create cursor
-        line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-        curs.execute("ALTER TABLE article DROP COLUMN organisations;") # deletion of the organization colum
+#        curs = conn.cursor()    # create cursor
+#        line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
+#        curs.execute("ALTER TABLE article DROP COLUMN organisations;") # deletion of the organization colum
 #        curs.execute("CREATE TABLE geoarticles AS SELECT * FROM article WHERE geom IS NOT NULL;") # create a new table with valid geometries only
 #        curs.execute("DROP TABLE article;") # if we want to delete the table with all (valid and non-valid) geometries
-        conn.commit() # commit, validate the changes in the database
+#        conn.commit() # commit, validate the changes in the database
     except psycopg2.Error as e:
         print(e, ' | error probably line '+str(line_execCmdIni))
     #closing database connection.
