@@ -4,11 +4,12 @@ Created on Wed Jan 15 10:44:07 2020
 
 @author: KHOJ Hanaa, SINEY Hadrien, SARGISSIAN Andre, BERAUD Luc
 
-IGAST 2019-2020, ENSG-UPEM - projet Analyse Spatiale, responsible IGN Paul CHAPRON
+IGAST 2019-2020, ENSG-UPEM - projet Analyse Spatiale
 For Clement MALLET - ISPRS 24th Congress (Nice, FR)
 
 This script require the definition of a PostgreSQL database. Fill the connection parameters at the bottom of the script (before the function calls).
 This script prepare the database from the CSV file of the ISPRS application form to the spatial database with the information of the articles.
+The path of the CSV table to import must be specified in the "sql_importTable.txt" file. Its columns must corresponds to the ones defined in this file. The path of the "sql_importTable.txt" also, at the end of this script.
 """
 
 import psycopg2 # library for postgresql
@@ -103,6 +104,13 @@ def geocoding(list_adress,paperid):
     Error of geocoding : maybe OSM detect a bot through regular request -> set a random counter between 1.5 and 2.5sec ?
     Otherwise, a loooot of request fails (and also maybe a OSM usual saturation affect it)
     """
+    """
+    For OSM geocoder and not OpenCage: 
+        import geocoder
+        location = geocoder.osm(adress)
+        rep=location.json
+        coordinates.append([rep['lat'], rep['lng']]) 
+    """
     coordinates=[] #List that will contain the latitude and the longitude of each address 
     verbose=False # boolean for testing if any error in the end
     nb_error = 0
@@ -190,17 +198,18 @@ def geometry_column(coordinates,list_adress,paperid):
                 print(e, ' | error probably line '+str(line_execCmdIni2))
         except:
             print("Unable to connect to the database | see line "+str(line_conn))
-    try:
-        line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
-        conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
-#        curs = conn.cursor()    # create cursor
-#        line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
-#        curs.execute("ALTER TABLE article DROP COLUMN organisations;") # deletion of the organization colum
-#        curs.execute("CREATE TABLE geoarticles AS SELECT * FROM article WHERE geom IS NOT NULL;") # create a new table with valid geometries only
-#        curs.execute("DROP TABLE article;") # if we want to delete the table with all (valid and non-valid) geometries
-#        conn.commit() # commit, validate the changes in the database
-    except psycopg2.Error as e:
-        print(e, ' | error probably line '+str(line_execCmdIni))
+    ### Uncomment parts of the following lines to delete organisations columns or create a table with good geometries only.
+    # try:
+    #     line_conn = getframeinfo(currentframe()).lineno +1  # get line number plus 1 (connection line)
+    #     conn = psycopg2.connect(dbname=datbname, user=user_db, password=pswd,host=dbhost,port=dbport) # connect to the database
+    #     curs = conn.cursor()    # create cursor
+    #     line_execCmdIni = getframeinfo(currentframe()).lineno +1   # get line number of the command execution
+    #     curs.execute("ALTER TABLE article DROP COLUMN organisations;") # deletion of the organization colum
+    #     curs.execute("CREATE TABLE geoarticles AS SELECT * FROM article WHERE geom IS NOT NULL;") # create a new table with valid geometries only
+    #     curs.execute("DROP TABLE article;") # if we want to delete the table with all (valid and non-valid) geometries
+    #     conn.commit() # commit, validate the changes in the database
+    # except psycopg2.Error as e:
+    #     print(e, ' | error probably line '+str(line_execCmdIni))
     #closing database connection.
     if(conn):
         conn.close()
